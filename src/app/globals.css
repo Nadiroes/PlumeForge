@@ -1,0 +1,233 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* ================== PLUMEFORGE — ÉDITEUR TYPE WORD ================== */
+
+.plume-prose {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 12.5pt;
+  line-height: 1.75;
+  color: #1f2937;
+  min-height: 900px;
+}
+.plume-prose:focus { outline: none; }
+.plume-prose p { margin: 0 0 0.85em 0; text-align: justify; hyphens: auto; }
+.plume-prose h1 {
+  font-size: 2em; font-weight: 700; margin: 1.4em 0 0.7em; text-align: center;
+  color: #111827; letter-spacing: 0.01em;
+}
+.plume-prose h2 { font-size: 1.4em; font-weight: 700; margin: 1.3em 0 0.5em; color: #111827; }
+.plume-prose h3 { font-size: 1.15em; font-weight: 600; margin: 1.1em 0 0.4em; color: #374151; }
+.plume-prose ul, .plume-prose ol { padding-left: 1.6em; margin: 0.6em 0 1em; }
+.plume-prose ul { list-style: disc; }
+.plume-prose ol { list-style: decimal; }
+.plume-prose li { margin-bottom: 0.3em; }
+.plume-prose blockquote {
+  border-left: 3px solid #cbd5e1; padding-left: 1em; margin: 1em 0 1em 0.5em;
+  color: #475569; font-style: italic;
+}
+.plume-prose hr.sep { border: none; border-top: 1px solid #d1d5db; margin: 1.6em 0; }
+.plume-prose p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: #9ca3af; float: left; height: 0; pointer-events: none;
+}
+
+/* Formats scénario / théâtre / sketch / dialogue */
+.plume-prose p.scene-heading {
+  font-family: 'Courier New', monospace; font-weight: 700; text-transform: uppercase;
+  text-align: left; margin: 1.6em 0 0.7em; color: #111827; font-size: 0.95em;
+}
+.plume-prose p.didascalie {
+  font-style: italic; color: #4b5563; margin: 0 0 0.8em 2.2em; text-align: left;
+}
+.plume-prose p.cue {
+  font-family: 'Courier New', monospace; text-transform: uppercase; font-weight: 700;
+  text-align: left; margin: 1em 0 0.15em 25%; font-size: 0.9em; color: #111827;
+}
+.plume-prose p.replique { text-align: left; margin: 0 0 0.8em 25%; }
+.plume-prose p.replique .pers { font-weight: 700; font-variant: small-caps; }
+.plume-prose div.front-page { page-break-after: always; }
+.plume-prose div.dedication h2 { margin-top: 3.5em; border: none; }
+.plume-prose p.dedicace-text { text-align: center; font-style: italic; margin-top: 4em; font-size: 1.1em; color: #374151; }
+.plume-prose ol.sommaire { font-size: 1.02em; }
+.plume-prose ol.sommaire li { margin-bottom: 0.45em; }
+.plume-prose div.annexes { border-top: 2px solid #111827; margin-top: 2.5em; padding-top: 1em; }
+
+/* ================== IMPRESSION (PDF prêt à imprimer) ================== */
+
+.print-only { display: none; }
+
+@media print {
+  @page { size: A4; margin: 0; }
+  body { background: white !important; }
+  .screen-only { display: none !important; }
+  .print-only { display: block !important; }
+
+  .print-page { padding: 2.2cm 2cm; page-break-after: always; }
+  .print-cover {
+    width: 100vw; height: 100vh; page-break-after: always;
+    position: relative; overflow: hidden;
+  }
+  .print-cover-inner { position: absolute; inset: 0; }
+  .print-title-page { text-align: center; padding-top: 9cm; }
+  .print-book-title { font-size: 34pt; font-weight: 700; font-family: Georgia, serif; margin-bottom: 1.5cm; }
+  .print-book-author { font-size: 15pt; color: #374151; font-style: italic; }
+  .print-book-meta { font-size: 9pt; color: #9ca3af; margin-top: 3.5cm; }
+  .print-section-title { font-size: 20pt; font-family: Georgia, serif; margin-bottom: 0.8cm; }
+  .print-toc { font-size: 12pt; line-height: 2; }
+  .print-toc li { border-bottom: 1px dotted #d1d5db; padding-bottom: 0.2cm; }
+  .print-body p { font-family: Georgia, 'Times New Roman', serif; font-size: 11.5pt; line-height: 1.7; text-align: justify; margin: 0 0 0.7em; }
+  .print-body h1 { font-size: 21pt; text-align: center; margin: 1.2cm 0 0.8cm; font-family: Georgia, serif; page-break-before: always; }
+  .print-body h1:first-child { page-break-before: avoid; }
+  .print-body h2 { font-size: 15pt; margin: 0.8cm 0 0.4cm; font-family: Georgia, serif; }
+  .print-body h3 { font-size: 12.5pt; margin: 0.6cm 0 0.3cm; }
+  .print-body p.scene-heading { font-family: 'Courier New', monospace; font-weight: 700; text-transform: uppercase; text-align: left; }
+  .print-body p.didascalie { font-style: italic; margin-left: 2.2em; text-align: left; }
+  .print-body p.cue { font-family: 'Courier New', monospace; text-transform: uppercase; font-weight: 700; text-align: left; margin: 0.5em 0 0.1em 25%; font-size: 10.5pt; }
+  .print-body p.replique { text-align: left; margin: 0 0 0.6em 25%; }
+  .print-body blockquote { margin: 0.8em 2em; font-style: italic; }
+  .print-body hr.sep { border: none; border-top: 1px solid #d1d5db; margin: 1em 0; }
+}
+
+/* ================== SCROLLBARS DISCRÈTES ================== */
+.overflow-y-auto::-webkit-scrollbar, [data-radix-scroll-area-viewport]::-webkit-scrollbar { width: 8px; }
+.overflow-y-auto::-webkit-scrollbar-thumb, [data-radix-scroll-area-viewport]::-webkit-scrollbar-thumb {
+  background: #d6d3d1; border-radius: 8px;
+}
+.overflow-y-auto::-webkit-scrollbar-track { background: transparent; }
+
+/* ================== DIVERS ================== */
+button, [role="button"] { -webkit-tap-highlight-color: transparent; }
+
+/* Barre de défilement masquée (toolbars scrollables mobile) */
+.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+@media (max-width: 767px) {
+  .plume-prose { font-size: 11.5pt; }
+  /* Colonne étroite : alignement à gauche plus lisible que justifié */
+  .plume-prose p { text-align: left; }
+  /* Formats scénario / théâtre : retrait réduit sur petit écran */
+  .plume-prose p.cue, .plume-prose p.replique { margin-left: 8%; }
+  .plume-prose p.didascalie { margin-left: 1em; }
+}

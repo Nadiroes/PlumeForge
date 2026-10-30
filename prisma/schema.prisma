@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  id               String   @id @default(cuid())
+  title            String   @default("Sans titre")
+  docType          String   @default("roman") // roman | essai | scenario | theatre | sketch | dialogue
+  status           String   @default("brouillon") // brouillon | generation | pause | termine
+  brief            String   @default("{}") // JSON: prompt, genre, ton, narration, humeur, style, targetPages, elements, extras
+  styleBible       String   @default("") // bible de style générée
+  learnings        String   @default("") // préférences apprises des conversations
+  outline          String   @default("") // JSON: plan détaillé
+  contentHtml      String   @default("") // contenu de l'éditeur (HTML)
+  chapterSummaries String   @default("[]") // JSON: résumés par chapitre (mémoire compressée)
+  coverFront       String   @default("{}") // JSON: calques couverture avant
+  coverBack        String   @default("{}") // JSON: calques couverture arrière
+  progress         String   @default("{}") // JSON: état du pipeline
+  wordCount        Int      @default(0)
+  targetPages      Int      @default(20)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  messages         ChatMessage[]
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  role      String // user | assistant
+  content   String
+  createdAt DateTime @default(now())
+}
+
+model Settings {
+  id            String  @id @default("default")
+  mistralKey    String  @default("")
+  agnesKey      String  @default("")
+  ollamaUrl     String  @default("http://localhost:11434")
+  ollamaModel   String  @default("")
+  providerOrder String  @default("auto") // auto | mistral | agnes | ollama | zai | demo
+  authorName    String  @default("")
+  usageLog      String  @default("[]") // JSON: journal des appels LLM
+}

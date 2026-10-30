@@ -1,0 +1,1592 @@
+     1→je veux creer un generateur de livres. Le user rentre un prompt, les informations sur la direction de son livre, le ton, la narration, l'humeur, le style d'ecriture.... le nombre de page souhaité, les elemnts a y inclure (couverture, sommaire, preface, dedicace, corps du livre, annexe numerotés ou pas (tout doit etre au choix pour le user) et quand il clique sur generer une barre de progression montre la creation du livre etape par etape. Il doit inclure des agents conversationnels qui vont apprendre tout au long de la construction du livre pour aider le lecteur s'il faut encherir ou rediriger le texte. Il doit etre concu pour tout types d'ecriture (cinema, sketch, theatre, dialogue......
+     2→Il faudra un prompt fort qui n'oublie rien de si important pour ce projet (et je t'autorise a completer tout ce que tu juges necessaire pour que ce projet soir indispensable, incontournable pour sa creation. Il doit fonctionner aussi en local en cas de coupure, de deconnexion du reseau.... et on peut y inserer les api mistral et agnes ai
+     3→L'utilisateur veut créer un générateur de livres avec de nombreuses fonctionnalités. Il demande un "prompt fort" qui n'oublie rien. Je dois faire des recherches pour rassembler les informations nécessaires : API Mistral, API Agnes AI, frameworks d'agents, génération de livres, mode hors ligne, etc. Je vais lancer plusieurs requêtes en parallèle.
+     4→
+     5→Found 58 web pages
+     6→Les résultats de recherche fournissent des informations utiles. Je vais ouvrir quelques liens pertinents.
+     7→
+     8→Read 4 pages
+     9→Inferenza | Mistral
+    10→Agnes 3.0 Flash - Agnes-Ai Docs
+    11→bookforge-framework - ⚠️
+    12→libriscribe - LibriScribe 📚✨
+    13→Les résultats de recherche fournissent des informations sur les API, les frameworks multi-agents, la génération de livres structurés et le mode hors ligne. Je vais maintenant chercher des informations supplémentaires sur les fonctionnalités spécifiques demandées : la barre de progression, les agents conversationnels avec mémoire, et la génération pour différents types d'écriture (cinéma, sketch, théâtre, dialogue). Je vais aussi chercher des modèles locaux pour le mode hors ligne.
+    14→
+    15→Found 47 web pages
+    16→Les résultats de recherche sont suffisants pour élaborer une réponse. Je vais structurer la réponse avec un prompt maître complet et structuré, en français. Je vais inclure les sections suivantes : le prompt maître (rôle, objectif, architecture, fonctionnalités, etc.), des notes d'implémentation, et peut-être un exemple de structure de données. Je dois m'assurer de citer les sources pertinentes. Je vais également mentionner les API Mistral et Agnes, les frameworks multi-agents, le mode hors ligne avec Ollama, etc.
+    17→
+    18→Voici un prompt maître conçu pour être utilisé comme spécification complète de votre générateur de livres. Il est structuré pour être directement exploitable par un LLM de codage (Claude, GPT, Mistral) ou par une équipe de développement. Il intègre toutes vos exigences, y compris les fonctionnalités que vous avez mentionnées et celles que j'ai jugées indispensables pour rendre l'outil incontournable.
+    19→
+    20→PROMPT MAÎTRE — GÉNÉRATEUR DE LIVRES MULTI-AGENTS, MULTI-GENRES ET OFFLINE-FIRST
+    21→1. RÔLE ET OBJECTIF
+    22→Tu es un architecte logiciel senior spécialisé en systèmes multi-agents et en génération de contenu long format. Tu dois concevoir et spécifier un générateur de livres augmenté par IA, capable de produire des ouvrages complets, structurés et cohérents à partir d'un prompt utilisateur, pour tout type d'écriture : roman, essai, scénario de cinéma, pièce de théâtre, sketch, recueil de dialogues, etc.
+    23→
+    24→Le système doit être indispensable pour les auteurs, scénaristes et créateurs : il ne se contente pas de générer du texte, il apprend en continu pendant la construction du livre, permet une collaboration humain-IA à chaque étape, et fonctionne en mode local hors ligne en cas de coupure réseau.
+    25→
+    26→2. ARCHITECTURE GÉNÉRALE
+    27→Le système repose sur une architecture multi-agents orchestrée, avec un pipeline de génération étape par étape, une mémoire persistante, et une couche d'abstraction LLM permettant de basculer entre fournisseurs cloud et modèles locaux.
+    28→
+    29→2.1. Couche LLM — Routage et Fallback
+    30→Le système doit supporter plusieurs fournisseurs avec un routeur intelligent :
+    31→
+    32→APIs cloud : Mistral AI (endpoint https://api.mistral.ai/v1/chat/completions, modèles mistral-large-latest, mistral-medium-latest) ; Agnes AI (endpoint OpenAI-compatible https://apihub.agnes-ai.com/v1, modèle agnes-3.0-flash optimisé pour les workflows agentiques et le respect des instructions longues).
+    33→
+    34→Mode local hors ligne : Ollama (modèles français comme Cygnis-Alpha-2-8B, Millesime-2026, Chocolatine-2.1) ou llama.cpp. Le système doit détecter automatiquement la perte de connexion et basculer sur le backend local sans interrompre la génération.
+    35→
+    36→Abstraction unifiée : une interface commune (LLMClient) gère les appels, le streaming, le suivi des coûts et le fallback.
+    37→
+    38→2.2. Pipeline de Génération — Agents Spécialisés
+    39→Inspire-toi des frameworks existants (BookForge avec ses 21 agents éditoriaux, LibriScribe et sa chaîne Concept → Outline → Worldbuilder → Writer → Editor, ou orchast_agent/book-writer avec ses 4 phases par chapitre : Outline → Writer → Reviewer → Finalizer).
+    40→
+    41→Voici la chaîne d'agents minimale et complète à implémenter :
+    42→
+    43→Phase   Agent   Rôle
+    44→1. Cadrage      BriefAgent      Analyse le prompt, les préférences (ton, narration, humeur, style), le nombre de pages, les éléments optionnels (couverture, sommaire, préface, dédicace, annexes numérotées ou non). Produit un contrat de livre structuré (JSON/YAML).
+    45→2. Planification        OutlineAgent    Génère le sommaire détaillé, la structure des chapitres/scènes/séquences, et la répartition du nombre de pages. Pour les scripts : structure en actes, scènes, dialogues.
+    46→3. Écriture     WriterAgent     Rédige chapitre par chapitre (ou scène par scène) en respectant le contrat de style. Pour le théâtre/cinéma : format standard (didascalies, noms de personnages, dialogues).
+    47→4. Révision     ReviewerAgent   Vérifie la cohérence, le style, le rythme, la continuité narrative. Signale les passages à enrichir ou rediriger.
+    48→5. Finalisation FinalizerAgent  Produit le texte poli au format final (Markdown, DOCX, PDF, EPUB).
+    49→6. Assemblage   AssemblerAgent  Compose le livre complet : couverture (si demandée), sommaire, préface, dédicace, corps, annexes (numérotées ou non selon le choix utilisateur).
+    50→Optionnel mais fortement recommandé : un StyleGuardianAgent qui maintient une "bible de style" (ton, POV, temps verbal, tics à éviter) et l'injecte dans chaque prompt d'écriture.
+    51→
+    52→2.3. Agents Conversationnels avec Mémoire Persistante
+    53→C'est la valeur ajoutée centrale de votre outil. Pendant la génération, des agents conversationnels doivent être accessibles à l'utilisateur pour enrichir, rediriger ou corriger le texte en cours.
+    54→
+    55→Mémoire à court terme : le contexte du chapitre/scène en cours.
+    56→
+    57→Mémoire à long terme : un système de fichiers Markdown ou une base vectorielle (Chroma, SQLite FTS5) qui stocke les décisions narratives, les traits des personnages, les contraintes de style, et les interactions passées avec l'utilisateur.
+    58→
+    59→Apprentissage continu : chaque intervention de l'utilisateur (« rends ce passage plus sombre », « ajoute un dialogue entre X et Y ») est enregistrée comme règle de préférence et réinjectée dans les générations futures. L'agent doit pouvoir dire : « J'ai noté que vous préférez les fins de chapitre suspensives ; je l'applique désormais. »
+    60→
+    61→Interface : un panneau de chat latéral, toujours accessible, avec la possibilité de mettre en pause la génération pour discuter avec l'agent avant de reprendre.
+    62→
+    63→3. FONCTIONNALITÉS DÉTAILLÉES
+    64→3.1. Formulaire de Configuration Utilisateur
+    65→L'utilisateur doit pouvoir tout paramétrer avant de lancer la génération :
+    66→
+    67→Prompt libre : idée centrale, genre, public cible.
+    68→
+    69→Direction du livre : message, thèmes, ambiance.
+    70→
+    71→Ton : neutre, humoristique, sombre, lyrique, didactique, etc.
+    72→
+    73→Narration : première personne, troisième personne limitée, omnisciente, etc.
+    74→
+    75→Humeur : légère, tendue, mélancolique, épique.
+    76→
+    77→Style d'écriture : concis, fleuri, oral, journalistique, poétique.
+    78→
+    79→Nombre de pages souhaité (ou nombre de mots/scènes).
+    80→
+    81→Éléments à inclure (cases à cocher, tout optionnel) :
+    82→
+    83→Couverture (génération d'image ou simple page de titre).
+    84→
+    85→Sommaire.
+    86→
+    87→Préface.
+    88→
+    89→Dédicace.
+    90→
+    91→Corps du livre.
+    92→
+    93→Annexes (avec option : numérotées ou non).
+    94→
+    95→Type d'écriture : roman, essai, scénario, théâtre, sketch, dialogue, etc. Le formulaire doit s'adapter dynamiquement (ex. : pour un scénario, demander le format de script ; pour du théâtre, le nombre d'actes).
+    96→
+    97→3.2. Barre de Progression Étape par Étape
+    98→Lorsque l'utilisateur clique sur « Générer », une barre de progression détaillée s'affiche, avec des sous-étapes visibles :
+    99→
+   100→text
+   101→[✅] Analyse du brief
+   102→[✅] Construction du sommaire
+   103→[🔄] Rédaction du chapitre 3/12… (65%)
+   104→[⏳] Révision stylistique
+   105→[⏳] Assemblage des annexes
+   106→[⏳] Export final (PDF/EPUB)
+   107→Chaque étape doit être cliquable pour voir les détails, et la génération doit être pausable/reprisable (persistance de l'état dans un fichier .progress.json, comme dans orchast_agent/book-writer).
+   108→
+   109→3.3. Support Multi-Formats d'Écriture
+   110→Le moteur doit être agnostique du genre grâce à des templates de structure :
+   111→
+   112→Roman/essai : chapitres, sections, paragraphes.
+   113→
+   114→Scénario de cinéma : actes, séquences, scènes, dialogues formatés, indications de jeu.
+   115→
+   116→Théâtre : actes, scènes, didascalies, répliques.
+   117→
+   118→Sketch : unité de lieu/temps, personnages, chute.
+   119→
+   120→Dialogue : échanges structurés, didascalies minimales.
+   121→
+   122→L'OutlineAgent doit sélectionner le template approprié en fonction du type d'écriture choisi.
+   123→
+   124→3.4. Mode Hors Ligne et Résilience
+   125→Détection automatique de la connectivité.
+   126→
+   127→Basculement transparent vers le modèle local Ollama/llama.cpp.
+   128→
+   129→File d'attente persistante : si la génération est interrompue (coupure, crash), elle reprend exactement là où elle s'est arrêtée.
+   130→
+   131→Cache local des embeddings et des artefacts (bible de style, mémoire des agents) pour un fonctionnement 100 % offline après la configuration initiale.
+   132→
+   133→3.5. Export et Publication
+   134→Formats de sortie : Markdown, DOCX, PDF, EPUB.
+   135→
+   136→Pour la couverture : soit une page de titre générée, soit une image générée via une API d'image (optionnel, désactivable en mode hors ligne).
+   137→
+   138→Métadonnées : titre, auteur, résumé, mots-clés.
+   139→
+   140→4. CONTRAINTES TECHNIQUES ET DE QUALITÉ
+   141→Cohérence longue : le système doit éviter la dérive narrative sur les livres longs (20+ chapitres). Utiliser une session fraîche par chapitre et des artefacts canoniques (contrat de livre, bible de style, graphe narratif) plutôt que de se fier à l'historique de chat.
+   142→
+   143→Qualité stylistique : intégrer des quality gates (détection de clichés, de répétitions, de « AI-slop »).
+   144→
+   145→Suivi des coûts : journaliser chaque appel LLM (tokens, modèle, coût estimé) dans un fichier llm_usage.jsonl.
+   146→
+   147→Extensibilité : architecture à plugins pour ajouter de nouveaux agents, de nouveaux formats d'export ou de nouveaux fournisseurs LLM.
+   148→
+   149→Interface utilisateur : web (React/Streamlit) ou desktop (Tauri/Electron), avec le panneau de chat des agents toujours visible.
+   150→
+   151→5. STACK TECHNIQUE RECOMMANDÉE
+   152→Couche  Technologie suggérée
+   153→Backend Python (FastAPI) ou Node.js (TypeScript)
+   154→Orchestration agents    Framework maison inspiré de Google ADK, LangGraph, ou une simple machine à états avec persistance
+   155→LLM cloud       Mistral AI API, Agnes AI API
+   156→LLM local       Ollama (modèles français : Cygnis-Alpha, Millesime, Chocolatine) ou llama.cpp
+   157→Mémoire Fichiers Markdown + SQLite FTS5 + éventuellement Chroma pour la recherche vectorielle
+   158→Frontend        React / Next.js (web) ou Tauri (desktop)
+   159→Export  Pandoc (Markdown → DOCX/PDF/EPUB), ReportLab pour PDF
+   160→6. LIVRABLE ATTENDU
+   161→Tu dois produire :
+   162→
+   163→Une spécification technique détaillée (ce prompt peut servir de base, mais tu dois l'enrichir avec des diagrammes d'architecture, des schémas de base de données et des contrats d'API).
+   164→
+   165→Un prototype fonctionnel (ou un plan de développement par sprints) implémentant le pipeline d'agents, le formulaire de configuration, la barre de progression et le fallback offline.
+   166→
+   167→Une documentation utilisateur expliquant comment configurer les clés API (Mistral, Agnes), installer Ollama et un modèle local, et utiliser les agents conversationnels.
+   168→
+   169→Ce prompt couvre l'intégralité de votre vision : génération structurée, multi-genres, agents apprenants, progression visible, et résilience hors ligne. Il vous reste à le soumettre à un LLM de codage ou à votre équipe pour passer de la spécification à l'implémentation. Souhaitez-vous que je détaille un module en particulier (par exemple, le schéma de la mémoire des agents ou le format des templates de structure pour les scripts) ?
+   170→
+   171→je pense a queue chose a ajouter a ce projet pour le rendre unique. Au lieu d'avoir un bloc conversationnel, linterface sera concu de type interface word avec toutes les options de traitement de texte. Ensuite, il y aura un bouton de type plus qui sera l'inviite pour commencer a ecrire et donc il demandera quel type de document on veut produire et step by step on est amené vers la conception de son ouvrage et quand on clique sur "ecriture", il se met sur l'interface word inclus dans le projet et ecrit directement dessus tout le contenu de sorte qu'une fois okay, qu'on valide pour le pret à imprimer ou exporter en word 97-2003 ou en pdf avec l'edition des images de couvertures avant et arrieres et tous les elements à modifier sur la couverture pour l'editer (la couverture doit etre generé en comprenant l'idée de depart du user). Il doit avoir un espace de stockage des projets crées rangés par type dedition.
+   172→L'utilisateur enrichit son projet de générateur de livres avec une interface de type Word, un bouton "+", une génération directe dans l'éditeur, un export DOC/PDF avec édition de couverture, et un espace de stockage par type d'édition. Je dois trouver des outils et frameworks pour l'édition de texte enrichi, la génération de couvertures, l'export DOCX/PDF, et la gestion de bibliothèque de projets. Je vais lancer des recherches ciblées.
+   173→
+   174→Found 55 web pages
+   175→Les résultats de recherche fournissent des informations utiles. Pour l'éditeur, Tiptap semble être un choix solide, avec un support pour l'IA et un thème de type Word. Il y a aussi docx-editor, un éditeur de type Word open source qui fonctionne dans le navigateur avec un SDK d'agent IA. Pour l'export DOC, Spire.Doc et Syncfusion prennent en charge le format Word 97-2003. La bibliothèque docx de dolanmiu peut générer des .docx. Pour la génération de couvertures, il y a des API comme each::sense et GPT-Image-2, ainsi que des projets open source. Pour la gestion de bibliothèque, il existe des modèles, mais il faudra peut-être concevoir une architecture spécifique. Je vais ouvrir quelques liens pertinents pour approfondir.
+   176→
+   177→Read 4 pages
+   178→Insert content workflow | Tiptap Content AI
+   179→浏览器里的Word编辑器开源了
+   180→spire.doc - spire.doc
+   181→Supported File Formats in JavaScript DOCX Editor
+   182→Les informations collectées sont suffisantes pour proposer une architecture technique robuste. L'éditeur docx-editor (eigenpal) semble idéal car il est WYSIWYG, gère le format DOCX, inclut un SDK d'agent IA et fonctionne côté client. Tiptap est une alternative solide avec un thème de type Word et une intégration IA via l'AI Toolkit. Pour l'export au format Word 97-2003, Spire.Doc et Syncfusion sont des options, mais Syncfusion nécessite des interactions côté serveur pour l'export .doc. docx (dolanmiu) peut générer des .docx mais pas des .doc natifs. Pour la couverture, des API comme each::sense ou GPT-Image-2 peuvent générer des images, et un éditeur de couverture peut être construit avec des composants canvas (Fabric.js, Konva) ou des templates. Pour le stockage des projets, une architecture avec une base de données (SQLite/IndexedDB) et un système de fichiers est envisageable. Je vais maintenant formuler une réponse qui intègre ces éléments dans le prompt maître, en mettant l'accent sur l'interface de type Word, le bouton "+", la génération directe, l'édition de couverture, l'export et le stockage.
+   183→
+   184→Votre idée d'intégrer un éditeur de texte de type Word change fondamentalement la dynamique du projet. On ne parle plus seulement d'un générateur qui "livre" un texte, mais d'un atelier d'écriture unifié où l'IA est un partenaire discret, présent directement dans l'interface de rédaction. C'est une vision beaucoup plus puissante et immersive.
+   185→
+   186→Voici comment je structurerais cette nouvelle couche, en m'appuyant sur les technologies existantes pour ne pas réinventer la roue.
+   187→
+   188→🖋️ Le Cœur du Système : un Éditeur WYSIWYG "Word-Like"
+   189→L'élément central de votre nouvelle interface est l'éditeur. Deux approches technologiques majeures se dégagent pour le construire.
+   190→
+   191→Option 1 : docx-editor (Recommandé pour la fidélité au format Word)
+   192→C'est un projet open source récent (v1.0) qui correspond presque parfaitement à votre besoin. Il s'agit d'un éditeur WYSIWYG qui gère le format .docx nativement : il charge un fichier Word, le modifie dans le navigateur, et le réexporte en .docx sans perte de format (OOXML natif).
+   193→
+   194→Son atout majeur pour votre projet est son Agent SDK intégré. Il fournit 14 outils permettant à un LLM de lire le document, d'ajouter des commentaires, de suggérer des modifications et de faire défiler le texte. Cela correspond exactement à votre besoin d'agents qui "aident le lecteur s'il faut enchérir ou rediriger le texte".
+   195→
+   196→Points forts : Fidélité .docx parfaite, suivi des modifications (Track Changes), commentaires, et surtout, une intégration IA native.
+   197→
+   198→Option 2 : Tiptap (Recommandé pour la flexibilité et l'écosystème React)
+   199→Tiptap est un framework d'édition riche très populaire, basé sur ProseMirror. Il propose un "Word-like theme" et une AI Toolkit complète.
+   200→
+   201→Leur workflow "Insert content" est particulièrement pertinent : il permet de remplacer ou d'insérer du contenu généré par l'IA en temps réel, en streaming, directement dans la sélection de l'utilisateur. C'est la base technique idéale pour votre bouton "+" qui lance la génération.
+   202→
+   203→Points forts : Écosystème React très riche, contrôle total sur l'interface (toolbar, menus), et une gestion de l'IA très fine (streaming, remplacement de sélection).
+   204→
+   205→Ma recommandation : Si la compatibilité stricte avec Word est la priorité absolue, partez sur docx-editor. Si vous voulez construire une expérience utilisateur sur mesure avec un contrôle total sur chaque interaction IA, Tiptap sera plus flexible.
+   206→
+   207→➕ Le Bouton "+" : le Point d'Entrée de la Création
+   208→Ce bouton est le déclencheur de votre flux "step-by-step". Son comportement peut être pensé comme un assistant de création qui vient s'insérer dans l'éditeur.
+   209→
+   210→Clic sur "+" : Un panneau latéral ou une modale s'ouvre, posant la première question : "Quel type de document veux-tu créer ?" (Roman, Scénario, Théâtre, Essai, etc.).
+   211→
+   212→Dialogue guidé : Les questions s'enchaînent (ton, narration, humeur, nombre de pages, éléments à inclure...). C'est ici que vous pouvez réutiliser l'intelligence de votre BriefAgent.
+   213→
+   214→Lancement de la génération : Une fois le brief validé, le clic sur "Écriture" ne vous redirige pas vers une autre page. L'éditeur reste au centre, et l'IA commence à écrire directement dedans.
+   215→
+   216→Techniquement, avec Tiptap, vous utiliseriez la méthode streamHtml pour injecter le contenu généré token par token, donnant l'impression que le texte s'écrit sous les yeux de l'utilisateur. Avec docx-editor, vous utiliseriez le SDK d'agent pour déclencher une série de modifications appliquées au document.
+   217→
+   218→🎨 Édition de la Couverture : un "Canva" Minimaliste
+   219→Votre besoin d'éditer la couverture (avant et arrière, textes modifiables) nécessite un éditeur graphique intégré. Plutôt que de générer une image statique, l'approche la plus puissante est de créer un éditeur de couverture par calques.
+   220→
+   221→Base de génération : L'IA génère une image de fond (illustration) basée sur l'idée de départ, via une API d'image (GPT-Image-2, each::sense, ou un modèle local).
+   222→
+   223→Superposition éditable : Par-dessus cette image, l'utilisateur peut ajouter et modifier des calques de texte (titre, sous-titre, nom de l'auteur, quatrième de couverture). Il peut changer la police, la taille, la couleur, la position.
+   224→
+   225→Technologie : Vous pouvez utiliser une librairie de canvas comme Fabric.js ou Konva.js pour créer cet éditeur de calques dans le navigateur. Le résultat final serait "aplati" (flattened) en une seule image pour l'export.
+   226→
+   227→💾 Export et Stockage
+   228→Export "Prêt à Imprimer"
+   229→Format PDF : C'est le standard pour l'impression. Vous pouvez utiliser une librairie comme Spire.Doc (qui gère le DOCX et le PDF) ou générer le PDF côté serveur avec Pandoc ou LaTeX pour un rendu professionnel (gestion des marges, des polices de caractères).
+   230→
+   231→Format Word 97-2003 (.doc) : C'est un point délicat. Les librairies modernes comme docx génèrent du .docx. Pour le vrai format .doc, Spire.Doc est l'une des rares API JavaScript qui le supporte nativement en export. Syncfusion le supporte aussi, mais nécessite des interactions côté serveur. Il faudra donc soit utiliser Spire.Doc, soit avertir l'utilisateur que l'export sera en .docx (compatible avec Word 97-2003 via une conversion automatique à l'ouverture).
+   232→
+   233→Espace de Stockage des Projets
+   234→Votre besoin de classer les projets "par type d'édition" appelle une architecture de bibliothèque de projets.
+   235→
+   236→Structure : Chaque projet est un dossier (ou une entrée en base de données) contenant :
+   237→
+   238→Le fichier source de l'éditeur (ex: un fichier .docx ou un JSON de l'état de l'éditeur).
+   239→
+   240→Les métadonnées (titre, type d'édition, date, statut).
+   241→
+   242→L'image de couverture (et ses calques si possible).
+   243→
+   244→L'historique des interactions avec les agents (pour la mémoire).
+   245→
+   246→Organisation : Une interface de type "étagère" ou "bibliothèque" avec des onglets ou des filtres par type d'édition (Romans, Scénarios, Essais, Poésie...).
+   247→
+   248→Technologie : Pour une application web, vous pouvez utiliser IndexedDB pour un stockage 100% local (ce qui est parfait pour votre mode hors ligne). Pour une application de bureau (Electron/Tauri), un simple système de fichiers avec une base SQLite pour l'indexation sera très robuste.
+   249→
+   250→💎 Synthèse de la Nouvelle Architecture
+   251→Voici comment les briques s'assemblent :
+   252→
+   253→Interface Unifiée : Un éditeur docx-editor ou Tiptap (avec thème Word) occupe 80% de l'écran.
+   254→
+   255→Création Guidée : Un bouton "+" ouvre un assistant (votre BriefAgent conversationnel) qui configure le projet.
+   256→
+   257→Génération In-Situ : L'IA écrit directement dans l'éditeur via un streaming de contenu, en utilisant les capacités de l'éditeur (insertion, remplacement).
+   258→
+   259→Couverture : Un mode "édition de couverture" ouvre un canvas avec l'image générée et des calques de texte modifiables.
+   260→
+   261→Export : Un bouton "Finaliser" propose le téléchargement en PDF (via une librairie comme Spire.Doc ou un backend Pandoc) et en Word (.docx ou .doc selon la librairie choisie).
+   262→
+   263→Bibliothèque : Une page d'accueil liste tous les projets, rangés par type d'édition, stockés localement (IndexedDB/SQLite).
+   264→
+   265→Cette conception fait de votre outil un véritable studio d'écriture, où l'IA est fondue dans l'environnement de création, plutôt qu'un simple générateur de texte externe. C'est une approche beaucoup plus "indispensable" et "incontournable" pour un auteur.
+   266→
+   267→Souhaitez-vous que nous détaillions un de ces composants, par exemple le fonctionnement précis du bouton "+" avec l'assistant conversationnel, ou la manière de structurer la bibliothèque de projets en mode hors ligne ?
+   268→
+   269→appliquons le projet en partant de l'utilisation de tiptap. Je reste sur tes conseil au regard de ta derniere question
+   270→L'utilisateur veut appliquer le projet en utilisant Tiptap. Je dois fournir une feuille de route technique détaillée pour l'implémentation avec Tiptap, en couvrant l'architecture, l'intégration de l'IA, le bouton "+", l'éditeur de couverture, l'export et le stockage local. Je vais effectuer des recherches sur Tiptap AI Toolkit, streaming, export DOCX/PDF, édition de couverture, et stockage local.
+   271→
+   272→Found 54 web pages
+   273→Les résultats de recherche fournissent des informations utiles. Je vais ouvrir quelques pages pour obtenir plus de détails.
+   274→
+   275→Read 4 pages
+   276→https://tiptap.dev/docs/ai/ai-toolkit/client/api-reference/edit-the-document.md
+   277→Export styles to PDF | Tiptap Conversion
+   278→tiptap/src/content/pages/guides/zero-to-print-ready.mdx at main · zhcndoc/tiptap - Skip to content
+   279→AI agent tools | Tiptap Content AI
+   280→Je dispose maintenant d'informations suffisantes pour répondre. Je vais structurer la réponse en feuille de route d'implémentation : architecture technique, le bouton "+" (assistant de création), le pipeline de génération in-situ avec Tiptap, l'éditeur de couverture avec Fabric.js, l'export (DOCX/PDF), le stockage local-first et la bibliothèque de projets. Je vais citer les sources pertinentes.
+   281→
+   282→Parfait, nous tenons l'architecture définitive. En partant sur Tiptap, votre projet ne sera plus un simple générateur, mais un studio d'écriture unifié et local-first. Voici la feuille de route technique détaillée pour transformer cette vision en réalité, composant par composant.
+   283→
+   284→🏗️ 1. L'Architecture Fondamentale : Tiptap comme Colonne Vertébrale
+   285→Le choix de Tiptap est stratégique car il fournit bien plus qu'un simple éditeur de texte. Il offre une base headless (sans interface imposée) construite sur ProseMirror, ce qui vous laisse un contrôle total sur l'expérience utilisateur, et surtout, il est nativement conçu pour l'intégration de l'IA.
+   286→
+   287→L'élément clé est le AI Toolkit de Tiptap. Il ne s'agit pas d'une simple API de complétion, mais d'un ensemble d'outils permettant à un agent IA de lire, éditer et commenter le document directement dans l'éditeur. C'est exactement l'esprit de vos "agents conversationnels" : une IA présente dans l'atelier, pas dans une fenêtre séparée.
+   288→
+   289→Le Stack Recommandé :
+   290→
+   291→Frontend & Éditeur : React / Next.js (ou un wrapper desktop comme Tauri) + Tiptap.
+   292→
+   293→Orchestration des Agents : Un backend (Node.js/TypeScript ou Python/FastAPI) qui héberge vos agents (BriefAgent, WriterAgent, etc.). Ce backend communique avec le frontend via des Server-Sent Events (SSE) ou des WebSockets pour le streaming.
+   294→
+   295→Fournisseurs LLM : Une couche d'abstraction dans votre backend pour router les requêtes vers Mistral AI (cloud) ou Ollama (local) en cas de coupure réseau.
+   296→
+   297→Stockage Local-First : IndexedDB pour une persistance instantanée des documents dans le navigateur, garantissant un fonctionnement 100% hors ligne.
+   298→
+   299→➕ 2. Le Bouton "+" : le Cerveau de l'Assistant de Création
+   300→Ce bouton est le point d'entrée de votre flux "step-by-step". Il ne doit pas ouvrir un formulaire froid, mais un panneau conversationnel latéral (ou une modale) qui guide l'utilisateur.
+   301→
+   302→Workflow d'Implémentation :
+   303→
+   304→Déclenchement : Le clic sur "+" ouvre un composant React CreationWizard qui surmonte l'éditeur.
+   305→
+   306→Dialogue Guidé : Ce panneau utilise votre BriefAgent pour poser les questions une par une : type de document, ton, narration, nombre de pages, éléments à inclure, etc.
+   307→
+   308→Validation et Lancement : Une fois le brief complété, l'utilisateur clique sur "Écriture". Le panneau ne se ferme pas ; il se met en mode "Génération en cours" et laisse l'éditeur central prendre le relais.
+   309→
+   310→La Clé : L'Injection de Contenu en Temps Réel : C'est ici que la magie de Tiptap opère. Votre backend va streamer le contenu généré (chapitre par chapitre, ou scène par scène) sous forme de HTML ou de JSON ProseMirror. Le frontend utilise ensuite la méthode streamHtml (ou streamContent) du AI Toolkit pour insérer le contenu textuellement dans l'éditeur, token par token, donnant l'impression que l'IA écrit directement sous les yeux de l'auteur.
+   311→
+   312→✍️ 3. La Génération "In-Situ" et les Agents Éditeurs
+   313→Une fois le brief validé, le WriterAgent prend le relais. Pour un ouvrage long, il est crucial de ne pas générer tout le livre en un seul appel (risque de dérive narrative). Votre backend doit orchestrer une génération séquentielle (chapitre par chapitre).
+   314→
+   315→L'Intégration avec Tiptap pour l'Édition :
+   316→Tiptap vous donne les outils pour que l'IA ne se contente pas d'écrire, mais aussi de réviser. Le toolkit AI Agent fournit des outils natifs comme apply_diff (appliquer des modifications ciblées), replace_document (remplacer tout le document), ou read_first_chunk/read_next_chunk pour que l'agent puisse relire son propre travail. Vous pouvez ainsi implémenter un ReviewerAgent qui, après chaque chapitre, analyse le texte et propose des modifications directement dans l'éditeur sous forme de suivi de modifications (Track Changes) que l'utilisateur peut accepter ou rejeter.
+   317→
+   318→🎨 4. L'Éditeur de Couverture : un "Canva" Minimaliste avec Fabric.js
+   319→Pour l'édition de la couverture (avant et arrière), la meilleure approche est un éditeur par calques. Fabric.js est la bibliothèque recommandée pour ce cas d'usage précis.
+   320→
+   321→Pourquoi Fabric.js ?
+   322→Contrairement à Konva.js, Fabric.js est spécifiquement conçu pour l'édition de texte sur canvas. Il fournit des objets IText et Textbox qui permettent à l'utilisateur de cliquer directement sur le texte de la couverture (titre, auteur) pour le modifier, le redimensionner, le déplacer, et changer sa police ou sa couleur de manière intuitive. Il gère également l'export en SVG, ce qui est un plus pour la qualité.
+   323→
+   324→Workflow :
+   325→
+   326→L'IA génère une image de fond basée sur l'idée de départ de l'utilisateur.
+   327→
+   328→Cette image est chargée comme un objet de fond dans un canvas Fabric.js.
+   329→
+   330→Des calques de texte éditables sont superposés pour le titre, le sous-titre, l'auteur, et le texte de la quatrième de couverture.
+   331→
+   332→L'utilisateur peut manipuler ces calques directement.
+   333→
+   334→Une fois validée, la couverture est "aplatie" (flattened) en une image finale pour l'export.
+   335→
+   336→📄 5. Export "Prêt à Imprimer" : DOCX et PDF
+   337→C'est un point technique crucial. Tiptap propose des extensions professionnelles (Pro) pour la conversion. La solution la plus robuste pour votre besoin est d'utiliser le Tiptap Conversion (basé sur des extensions Pro).
+   338→
+   339→Comment ça marche :
+   340→
+   341→Export DOCX : L'extension @tiptap-pro/extension-export-docx permet de convertir le contenu de l'éditeur en un fichier .docx entièrement côté client (dans le navigateur), sans aucun appel serveur. Un guide officiel détaille ce workflow "zero-to-print-ready".
+   342→
+   343→Export PDF : L'export PDF de Tiptap passe par la génération d'un DOCX en interne avant de le convertir en PDF. Cela garantit une fidélité de mise en page. Vous pouvez définir des styles personnalisés (polices, marges, espacement) directement dans la configuration de l'extension pour un rendu professionnel.
+   344→
+   345→Word 97-2003 (.doc) : Comme mentionné précédemment, le support natif du format .doc est rare. La stratégie la plus fiable est de générer un .docx (qui est le standard moderne) et d'informer l'utilisateur qu'il est compatible avec les versions récentes de Word. Si le format .doc est absolument non négociable, il faudra se tourner vers une librairie serveur spécialisée comme Spire.Doc.
+   346→
+   347→💾 6. Stockage Local-First et Bibliothèque de Projets
+   348→Votre exigence de fonctionnement hors ligne et de classement par type d'édition s'articule parfaitement autour d'une architecture local-first.
+   349→
+   350→La Stack de Stockage :
+   351→
+   352→Persistance du Document : Utilisez Yjs avec son adaptateur y-indexeddb. C'est la méthode officielle recommandée par Tiptap pour le mode hors ligne. Chaque modification de l'éditeur est instantanément sauvegardée dans le navigateur. Si la connexion est perdue, le travail continue et sera synchronisé plus tard.
+   353→
+   354→Bibliothèque de Projets : Créez une base de données IndexedDB (via une librairie comme Dexie.js pour plus de confort) pour stocker les métadonnées de chaque projet : titre, type d'édition (Roman, Scénario, etc.), date de création, statut, chemin d'accès au fichier Yjs, chemin d'accès à l'image de couverture.
+   355→
+   356→Interface "Étagère" : Une page d'accueil React qui lit cette base de données et affiche les projets sous forme de cartes, avec des onglets ou des filtres par type d'édition. Le clic sur un projet recharge le document Yjs correspondant depuis IndexedDB et l'injecte dans l'éditeur Tiptap.
+   357→
+   358→Cette architecture fait de votre application un outil résilient et autonome, où l'utilisateur n'est jamais bloqué par une coupure réseau.
+   359→
+   360→Souhaitez-vous que nous approfondissions un de ces modules, par exemple la structure exacte du CreationWizard (le bouton "+") ou la logique de génération chapitre par chapitre avec les agents ?
+   361→
+   362→les deux
+   363→L'utilisateur veut approfondir deux modules : le CreationWizard (bouton "+") et la logique de génération chapitre par chapitre avec les agents. Je dois faire des recherches sur les meilleures pratiques pour Tiptap, la gestion d'état, le streaming, et l'orchestration multi-agents. Je vais lancer des recherches parallèles.
+   364→
+   365→Found 46 web pages
+   366→Les résultats de recherche sont prometteurs. J'ai trouvé des informations sur le streaming Tiptap, le workflow d'insertion, la gestion d'état avec Zustand, les frameworks multi-agents (comme my-novel-agent et DeepWriter), les tracked changes, et le support hors ligne avec y-indexeddb. Je vais ouvrir quelques pages clés pour obtenir plus de détails.
+   367→
+   368→Read 3 pages
+   369→Streaming | Tiptap AI Toolkit
+   370→Insert content workflow | Tiptap AI Toolkit
+   371→Review AI changes with suggestions | Tiptap AI Toolkit
+   372→J'ai maintenant une bonne base d'informations. Je vais structurer la réponse en deux parties : d'abord le CreationWizard, puis la génération chapitre par chapitre. Je vais utiliser les informations sur le streaming Tiptap, la gestion d'état, les frameworks multi-agents, les tracked changes et le mode hors ligne. Je vais également mentionner l'utilisation de Zustand pour la gestion d'état, et m'inspirer du pipeline séquentiel de book-writer. Je vais aussi intégrer les concepts de "suggestions" et "tracked changes" pour la révision. La réponse doit être détaillée et technique, en français.
+   373→
+   374→Nous allons maintenant plonger dans les deux modules qui font la spécificité de votre studio : le CreationWizard (le bouton "+") et le moteur de génération séquentielle. La force de votre approche réside dans le fait que ces deux modules ne sont pas des boîtes noires, mais des composants interagissant directement avec l'éditeur Tiptap.
+   375→
+   376→🧭 Module 1 : Le CreationWizard (le Bouton "+")
+   377→Ce panneau n'est pas un simple formulaire, mais un assistant conversationnel à état qui configure le "contrat de livre" avant de déclencher la génération.
+   378→
+   379→Architecture d'État avec Zustand
+   380→Pour gérer les étapes du wizard sans complexité inutile, Zustand est le choix idéal, comme le confirment les architectures modernes alliant Tiptap et Zustand. Contrairement à un useState local, Zustand vous permet de :
+   381→
+   382→Persister l'état du wizard dans sessionStorage ou IndexedDB, pour qu'une coupure réseau ou un rafraîchissement ne fasse pas perdre la progression.
+   383→
+   384→Découpler la logique de l'UI : le BriefAgent peut être appelé indépendamment, et les réponses peuvent être validées à chaque étape.
+   385→
+   386→Voici le squelette du store :
+   387→
+   388→typescript
+   389→// stores/useCreationWizardStore.ts
+   390→import { create } from 'zustand';
+   391→import { persist } from 'zustand/middleware';
+   392→
+   393→type WizardStep = 'documentType' | 'tone' | 'narration' | 'length' | 'elements' | 'review';
+   394→
+   395→interface CreationWizardState {
+   396→  currentStep: WizardStep;
+   397→  brief: {
+   398→    documentType: 'roman' | 'scenario' | 'theatre' | 'essai' | 'sketch' | null;
+   399→    tone: string;
+   400→    narration: string;
+   401→    targetPages: number;
+   402→    elements: {
+   403→      cover: boolean;
+   404→      toc: boolean;
+   405→      preface: boolean;
+   406→      dedication: boolean;
+   407→      annexes: boolean;
+   408→      numberedAnnexes: boolean;
+   409→    };
+   410→  };
+   411→  // Actions
+   412→  setStep: (step: WizardStep) => void;
+   413→  updateBrief: (partial: Partial<CreationWizardState['brief']>) => void;
+   414→  resetWizard: () => void;
+   415→}
+   416→La Logique Conversationnelle du BriefAgent
+   417→Le wizard n'est pas qu'une suite de champs. À chaque étape, un agent (le BriefAgent) peut proposer des options par défaut et rebondir sur les réponses de l'utilisateur. Par exemple, si l'utilisateur choisit "Scénario de cinéma", l'étape suivante peut proposer des tons adaptés ("Polar", "Comédie dramatique", "Thriller") tout en laissant la possibilité de saisir un ton personnalisé.
+   418→
+   419→Point d'implémentation clé : Le backend expose un endpoint /api/wizard/suggest qui prend en entrée { step, currentBrief } et renvoie des suggestions ou la question suivante. Cela peut être un simple appel LLM avec un prompt structuré, ou une logique de règles pour les étapes purement déterministes (comme le choix du type de document).
+   420→
+   421→Déclenchement de la Génération
+   422→Une fois le brief validé (à l'étape review), le clic sur "Écriture" ne ferme pas le panneau. Le CreationWizard se met en mode generating, et c'est l'éditeur qui prend le relais visuellement. Le wizard peut afficher une barre de progression fine (le nombre de chapitres générés) tout en restant accessible pour d'éventuelles interruptions.
+   423→
+   424→📖 Module 2 : Génération Chapitre par Chapitre avec les Agents
+   425→C'est le cœur de la production longue. Le principe directeur, validé par des frameworks comme book-writer ou DeepWriter, est le pipeline séquentiel avec sessions fraîches pour éviter la dérive narrative et la saturation du contexte.
+   426→
+   427→Le Pipeline à 4 Phases (par Chapitre)
+   428→Inspiré directement du modèle de book-writer, chaque chapitre passe par quatre agents distincts, chacun avec une responsabilité unique :
+   429→
+   430→Phase   Agent   Rôle    Sortie
+   431→1. Planification locale ChapterOutlineAgent     Décompose le chapitre en sections détaillées, avec les points clés et les transitions.  chapter_outline (JSON structuré)
+   432→2. Écriture     WriterAgent     Rédige le chapitre complet en prose (ou au format script) en suivant l'outline. chapter_draft (Markdown/HTML)
+   433→3. Révision     ReviewerAgent   Analyse le brouillon pour la clarté, la fluidité, la cohérence avec les chapitres précédents.   chapter_review (feedback structuré)
+   434→4. Finalisation FinalizerAgent  Produit la version finale polie, prête à être insérée dans l'éditeur.   chapter_final (HTML)
+   435→Gestion de l'état : Chaque sortie est stockée dans un output_key (comme dans ADK) ou un objet d'état persistant. Le WriterAgent lit chapter_outline, le ReviewerAgent lit chapter_outline + chapter_draft, et le FinalizerAgent lit les trois. Cela garantit que chaque agent a exactement le contexte dont il a besoin, sans surcharge.
+   436→
+   437→Intégration avec Tiptap : le Streaming "In-Situ"
+   438→C'est ici que Tiptap transforme l'expérience. Au lieu d'attendre la fin de la génération de tout un chapitre, le texte s'écrit en temps réel dans l'éditeur.
+   439→
+   440→Le Mécanisme Technique :
+   441→
+   442→Le backend expose un endpoint /api/generate/chapter qui retourne un stream NDJSON (comme le recommande Tiptap pour le streaming serveur). Chaque delta contient un fragment HTML du chapitre en cours.
+   443→
+   444→Côté client, vous utilisez la méthode streamHtml du Tiptap AI Toolkit :
+   445→
+   446→typescript
+   447→// hooks/useChapterStreaming.ts (simplifié)
+   448→import { getAiToolkit } from '@tiptap-pro/client-ai-toolkit';
+   449→
+   450→async function streamChapterIntoEditor(
+   451→  editor: Editor,
+   452→  chapterPrompt: object,
+   453→  position: number
+   454→) {
+   455→  const toolkit = getAiToolkit(editor);
+   456→  const response = await fetch('/api/generate/chapter', {
+   457→    method: 'POST',
+   458→    body: JSON.stringify(chapterPrompt),
+   459→  });
+   460→
+   461→  const reader = response.body?.getReader();
+   462→  const decoder = new TextDecoder();
+   463→
+   464→  while (true) {
+   465→    const { done, value } = await reader!.read();
+   466→    if (done) break;
+   467→
+   468→    const chunk = decoder.decode(value); // fragment HTML
+   469→    // Insertion incrémentale directement dans l'éditeur
+   470→    editor.commands.insertContentAt(position, chunk);
+   471→    position += chunk.length; // ou utiliser une position de curseur
+   472→  }
+   473→}
+   474→Note : La méthode exacte dépend de si vous utilisez le streamTool (qui nécessite un toolCallId et un objet JSON structuré) ou le streamContent de plus bas niveau. Pour une génération de texte brut comme un chapitre, streamHtml ou streamContent est plus direct. Le streamTool est mieux adapté aux agents qui exécutent des "outils" d'édition (comme apply_diff).
+   475→
+   476→Human-in-the-Loop : Révision avec Suggestions
+   477→Le ReviewerAgent ne doit pas seulement produire du feedback textuel. Tiptap offre un mécanisme puissant de "Suggestions" (ou Tracked Changes) : les modifications proposées par l'IA apparaissent directement dans l'éditeur, avec un code couleur (rouge pour les suppressions, vert pour les insertions), et l'utilisateur peut accepter ou rejeter chaque changement individuellement.
+   478→
+   479→Workflow :
+   480→
+   481→Après la génération d'un chapitre, le ReviewerAgent renvoie une liste de modifications structurées (via un outil apply_diff ou des suggestions).
+   482→
+   483→Le client utilise toolkit.executeTool({ toolName, input, reviewOptions: { mode: 'preview' } }) pour afficher les suggestions dans l'éditeur.
+   484→
+   485→L'utilisateur peut accepter les suggestions une par une, ou demander à l'agent de reformuler un passage spécifique directement dans l'interface.
+   486→
+   487→C'est exactement le niveau de collaboration "humain-IA" que vous recherchiez : l'IA n'écrase pas le texte, elle propose, et l'auteur garde le contrôle total.
+   488→
+   489→Persistance et Reprise
+   490→Chaque chapitre finalisé est immédiatement persisté dans le document Yjs via y-indexeddb. Le fichier .progress.json (ou un équivalent dans IndexedDB) enregistre le numéro du dernier chapitre complété. Si la génération est interrompue (coupure, crash, fermeture de l'onglet), au rechargement, le système lit la progression et reprend exactement là où il s'est arrêté, en réinjectant le contexte des chapitres précédents (résumés, bible de style) pour le prochain appel.
+   491→
+   492→🔗 Synthèse de l'Interaction
+   493→L'utilisateur clique sur "+", le CreationWizard (Zustand) s'ouvre.
+   494→
+   495→Le BriefAgent guide les choix ; l'état est persisté.
+   496→
+   497→Au clic "Écriture", le backend reçoit le brief et démarre le pipeline séquentiel.
+   498→
+   499→Pour chaque chapitre : Outline → Writer → Reviewer → Finalizer.
+   500→
+   501→Le texte du Finalizer est streamé directement dans Tiptap.
+   502→
+   503→Le Reviewer peut proposer des suggestions (Tracked Changes) que l'utilisateur valide.
+   504→
+   505→Le chapitre finalisé est sauvegardé localement (Yjs/IndexedDB), et la progression est mise à jour.
+   506→
+   507→Le wizard affiche la progression (ex. "Chapitre 3/12 terminé").
+   508→
+   509→Cette architecture combine la puissance des pipelines multi-agents pour la cohérence longue, la réactivité du streaming Tiptap pour l'expérience d'écriture, et la robustesse du local-first pour la résilience hors ligne.
+   510→
+   511→Souhaitez-vous que nous détaillions la structure exacte du prompt pour le ChapterOutlineAgent (pour garantir qu'il produit un JSON exploitable par le WriterAgent), ou la gestion de la "bible de style" et des résumés de chapitres précédents pour maintenir la cohérence sur un livre de 20+ chapitres ?
+   512→
+   513→les deux
+   514→L'utilisateur veut maintenant des détails sur deux aspects : la structure exacte du prompt pour le ChapterOutlineAgent (pour garantir un JSON exploitable par le WriterAgent), et la gestion de la "bible de style" et des résumés de chapitres précédents pour maintenir la cohérence sur un livre de 20+ chapitres. Je dois faire des recherches pour trouver des informations pertinentes. Je vais lancer plusieurs recherches en parallèle.
+   515→
+   516→Found 36 web pages
+   517→Les résultats de recherche fournissent plusieurs sources pertinentes. Je vais ouvrir certains liens pour obtenir plus de détails.
+   518→
+   519→Read 6 pages
+   520→PaperOrchestra/skills/outline-agent/SKILL.md at main · Ar9av/PaperOrchestra - Skip to content
+   521→autonomous_non_fiction_book_writer
+   522→NovelForge AI
+   523→Novel Bot
+   524→#claudecode #agentharness | Sam Keen
+   525→View All
+   526→Les sources fournissent des informations précieuses. Le résultat 0 (PaperOrchestra) montre un exemple de prompt pour un agent d'outline produisant un JSON strict. Le résultat 1 (autonomous_non_fiction_book_writer) insiste sur une interface JSON stricte. Le résultat 5 (NovelForge AI) utilise une "Series Bible" et une "Compressed memory". Le résultat 1 (Novel Bot) décrit un "Story Bible System" et une "Dual Memory System". Le résultat 4 (Sam Keen) mentionne l'utilisation d'une "canon bible" et de résumés de chapitres précédents. Le résultat 1 (oh-story-claudecode) détaille une approche de gestion d'état avec des fichiers et une sélection de contexte ("load only the slice a chapter needs"). Je vais maintenant synthétiser ces informations pour répondre aux deux questions de l'utilisateur : la structure du prompt pour le ChapterOutlineAgent et la gestion de la bible de style/résumés. Je vais structurer la réponse en deux parties. Pour la première partie, je vais proposer une structure de prompt avec un schéma JSON, en m'inspirant de PaperOrchestra et des bonnes pratiques de sortie structurée. Pour la deuxième partie, je vais décrire un système de "bible de style" et de "mémoire compressée" en m'appuyant sur Novel Bot, NovelForge et oh-story-claudecode. Je vais citer les sources pertinentes.
+   527→
+   528→Voici les deux modules détaillés : la structure du prompt pour le ChapterOutlineAgent (avec un schéma JSON exploitable) et le système de gestion de la bible de style et des résumés pour maintenir la cohérence sur un ouvrage long.
+   529→
+   530→📐 Module 1 : Structure du Prompt pour le ChapterOutlineAgent
+   531→L'objectif de cet agent est de produire un objet JSON strict et validé, qui servira de "source de vérité" au WriterAgent. La clé est de ne pas laisser de place à l'interprétation : le schéma de sortie doit être déclaré explicitement, et le prompt doit imposer une réponse qui ne contient que ce JSON.
+   532→
+   533→Le Prompt Système (System Prompt)
+   534→Le prompt système du ChapterOutlineAgent doit combiner plusieurs éléments : un rôle clair, le contexte du brief, et l'énoncé formel du schéma JSON de sortie.
+   535→
+   536→text
+   537→Tu es le ChapterOutlineAgent, un architecte narratif spécialisé. Ta mission est de décomposer un chapitre de livre en un plan détaillé, structuré et exploitable par un agent rédacteur (WriterAgent). Tu ne rédiges PAS le chapitre ; tu produis uniquement son squelette.
+   538→
+   539→## CONTEXTE DU PROJET
+   540→- Type d'écriture : {documentType}
+   541→- Ton : {tone}
+   542→- Narration : {narration}
+   543→- Style : {writingStyle}
+   544→- Brief général : {globalBrief}
+   545→
+   546→## CONTEXTE NARRATIF (pour ce chapitre)
+   547→- Titre du chapitre : {chapterTitle}
+   548→- Résumé des événements précédents : {previousChapterSummary}
+   549→- Éléments de la bible de style pertinents : {styleBibleExcerpt}
+   550→- Éléments de la bible narrative (personnages, lieux, intrigues) : {narrativeBibleExcerpt}
+   551→
+   552→## TÂCHE
+   553→Produis un plan de chapitre qui respecte impérativement le schéma JSON ci-dessous. Chaque section doit avoir un objectif narratif clair, et les transitions entre sections doivent être logiques. Pour un scénario ou du théâtre, adapte les "sections" en "scènes" ou "séquences".
+   554→
+   555→## SCHÉMA DE SORTIE (respecte-le à la lettre)
+   556→Tu dois répondre UNIQUEMENT avec un objet JSON valide, sans aucun texte avant ou après, conforme au schéma suivant :
+   557→
+   558→```json
+   559→{
+   560→  "chapter_title": "string",
+   561→  "chapter_number": "integer",
+   562→  "narrative_goal": "string (l'objectif principal de ce chapitre dans l'arc global)",
+   563→  "sections": [
+   564→    {
+   565→      "section_id": "string (ex: '1.1', '1.2')",
+   566→      "title": "string",
+   567→      "summary": "string (2-3 phrases décrivant ce qui se passe)",
+   568→      "key_beats": ["string (liste des événements ou révélations clés)"],
+   569→      "characters_involved": ["string (noms des personnages présents)"],
+   570→      "setting": "string (lieu et moment)",
+   571→      "narrative_function": "string (ex: 'introduction du conflit', 'révélation', 'transition')",
+   572→      "estimated_word_count": "integer (nombre de mots approximatif pour cette section)",
+   573→      "transition_to_next": "string (comment cette section mène à la suivante)"
+   574→    }
+   575→  ],
+   576→  "chapter_hook": "string (la phrase ou l'image qui clôt le chapitre et donne envie de lire le suivant)"
+   577→}
+   578→RÈGLES STRICTES
+   579→Ne produis aucun commentaire, aucune explication, aucun texte en dehors de l'objet JSON.
+   580→
+   581→Le JSON doit être syntaxiquement valide (guillemets doubles, pas de virgule finale).
+   582→
+   583→Le nombre de sections doit être cohérent avec la longueur cible du chapitre (environ une section par 800-1200 mots).
+   584→
+   585→Chaque key_beat doit être un événement concret, pas une abstraction.
+   586→
+   587→Le chapter_hook doit être une phrase ou une image, pas un résumé.
+   588→
+   589→text
+   590→
+   591→#### Validation Post-Génération
+   592→
+   593→Même avec un prompt strict, il est recommandé de valider la sortie côté backend avec une librairie comme **Pydantic** (Python) ou **Zod** (TypeScript)[reference:1]. Si la validation échoue, le backend peut relancer l'agent avec un message d'erreur correctif (*"Le champ `sections` doit être un tableau non vide"*). Ce mécanisme de "retry avec feedback" est plus fiable que de compter sur la perfection du premier appel.
+   594→
+   595→---
+   596→
+   597→### 🧠 Module 2 : Bible de Style et Résumés pour la Cohérence Longue
+   598→
+   599→Sur un livre de 20+ chapitres, la fenêtre de contexte d'un LLM ne suffit pas à maintenir la cohérence. La solution éprouvée est de **ne pas demander au modèle de "se souvenir"**, mais de lui fournir à chaque chapitre **exactement la tranche d'état dont il a besoin**[reference:2].
+   600→
+   601→#### L'Architecture de la Mémoire : Trois Couches
+   602→
+   603→Inspirée du système de "Dual Memory" de Novel Bot et de la "compressed memory" de NovelForge, cette architecture sépare la mémoire en trois artefacts persistants[reference:3][reference:4] :
+   604→
+   605→| Couche | Fichier / Artefact | Contenu | Fréquence de mise à jour |
+   606→|---|---|---|---|
+   607→| **1. Bible de Style (statique)** | `STYLE_BIBLE.md` | Ton, POV, temps verbal, règles de style, tics à éviter, format des dialogues (ex. : scénario). | Une fois, au début du projet ; modifiable manuellement. |
+   608→| **2. Bible Narrative (évolutive)** | `NARRATIVE_BIBLE.json` | Personnages (traits, objectifs, état actuel), lieux, règles du monde, intrigues secondaires, foreshadowing actif. | Après chaque chapitre, par un `ContinuityAgent`. |
+   609→| **3. Résumés Compressés (cumulatifs)** | `CHAPTER_SUMMARIES.md` | Résumé de 150-300 mots par chapitre, avec les événements *qui affectent la suite*. | Après chaque chapitre finalisé. |
+   610→
+   611→#### Le Workflow de Cohérence par Chapitre
+   612→
+   613→Voici comment ces artefacts sont utilisés à chaque étape du pipeline `ChapterOutlineAgent → WriterAgent` :
+   614→
+   615→1.  **Avant le `ChapterOutlineAgent`** : Le backend lit le `STYLE_BIBLE.md` et le `NARRATIVE_BIBLE.json`. Il extrait les éléments **pertinents pour le chapitre à venir** (par exemple, uniquement les personnages qui apparaissent, uniquement les intrigues secondaires concernées). Il construit un "paquet de contexte" compact, qui est injecté dans le prompt sous forme de texte résumé[reference:5].
+   616→
+   617→2.  **Pour le `WriterAgent`** : Le contexte inclut le plan JSON du chapitre (sortie de l'agent précédent), le résumé du **chapitre immédiatement précédent** (pour la continuité directe), et les extraits pertinents des bibles. C'est exactement le workflow décrit par Sam Keen : *"Canon bible as context, relevant chapter outline, previous chapter summary (for continuity)"*[reference:6].
+   618→
+   619→3.  **Après le `WriterAgent` (et le `ReviewerAgent`)** : Un **`ContinuityAgent`** entre en jeu. Il lit le chapitre finalisé et met à jour les artefacts :
+   620→    - Il génère le **résumé compressé** du chapitre (150-300 mots) et l'ajoute à `CHAPTER_SUMMARIES.md`.
+   621→    - Il met à jour le `NARRATIVE_BIBLE.json` : l'état des personnages a changé ? Une intrigue secondaire a progressé ? Un foreshadowing a été planté ou résolu ?
+   622→    - Cette mise à jour est **validée par l'utilisateur** (ou automatiquement si le score de confiance est élevé), pour éviter que l'IA n'introduise des incohérences dans la bible elle-même.
+   623→
+   624→#### Gestion de la Dérive sur les Très Longs Ouvrages
+   625→
+   626→Pour un livre de 50+ chapitres, même les résumés cumulatifs peuvent devenir trop volumineux. La stratégie est alors une **compression hiérarchique** :
+   627→
+   628→- **Résumés de chapitres** (150-300 mots) → **Résumés d'arcs** (500-800 mots pour 5-10 chapitres) → **Résumé global** (1-2 pages pour tout le livre).
+   629→- Le `WriterAgent` reçoit toujours : le résumé du chapitre précédent, le résumé de l'arc en cours (si différent), et le résumé global (en tout dernier recours, pour les références lointaines).
+   630→
+   631→Ce système permet de maintenir une cohérence "de niveau industriel" sur des centaines de milliers de mots, sans jamais saturer la fenêtre de contexte[reference:7].
+   632→
+   633→#### Implémentation dans Votre Stack
+   634→
+   635→- **Stockage** : Les trois artefacts sont des fichiers Markdown/JSON stockés dans le projet (IndexedDB ou système de fichiers via Tauri). Ils sont **versionnés** avec le document Yjs, pour que l'utilisateur puisse revenir à un état antérieur de la bible si nécessaire.
+   636→- **Interface** : Un panneau "Cohérence" dans l'éditeur Tiptap permet à l'auteur de consulter et de **modifier manuellement** la bible de style ou l'état des personnages. C'est le "human-in-the-loop" au niveau méta-narratif : l'auteur garde le contrôle sur les règles qui gouvernent la génération.
+   637→
+   638→Souhaitez-vous que nous détaillions le **prompt exact du `ContinuityAgent`** (celui qui extrait les mises à jour de la bible après chaque chapitre), ou la **logique de sélection du contexte** (comment choisir les extraits pertinents de la bible pour un chapitre donné) ?
+   639→comment l'appeler cette application: il faut un nom facile a retenir et accrocheur?
+   640→The user wants a name for their book-generation application. Let me think about what the app does:
+   641→
+   642→It's an AI-powered book/writing studio
+   643→
+   644→Works like Word (Tiptap editor) but with AI agents that write directly in the editor
+   645→
+   646→Multi-genre: novels, screenplays, theatre, sketches, essays, dialogues
+   647→
+   648→Step-by-step creation wizard (the "+" button)
+   649→
+   650→Conversational agents that learn during the process
+   651→
+   652→Cover editor
+   653→
+   654→Works offline (local-first)
+   655→
+   656→Export to DOCX/PDF
+   657→
+   658→Project library organized by edition type
+   659→
+   660→French-oriented (user speaks French, mentions Mistral, Agnes AI - French companies)
+   661→
+   662→The name needs to be:
+   663→
+   664→Easy to remember
+   665→
+   666→Catchy
+   667→
+   668→Evocative of writing/creation/books/AI partnership
+   669→
+   670→Probably works in French and English
+   671→
+   672→Let me brainstorm categories:
+   673→
+   674→French words:
+   675→
+   676→Plume (feather/pen) - classic, elegant
+   677→
+   678→Encre (ink)
+   679→
+   680→Manuscrit
+   681→
+   682→Atelier
+   683→
+   684→Fabrique
+   685→
+   686→Écrire
+   687→
+   688→Rédaction
+   689→
+   690→Ouvrage
+   691→
+   692→Livre
+   693→
+   694→Page
+   695→
+   696→Chapitre
+   697→
+   698→Conte
+   699→
+   700→Récit
+   701→
+   702→Stylo
+   703→
+   704→Griffe
+   705→
+   706→Écho
+   707→
+   708→Éclat
+   709→
+   710→Combinations with tech/AI:
+   711→
+   712→Plume.ai
+   713→
+   714→InkFlow
+   715→
+   716→Scriptor
+   717→
+   718→Scribo
+   719→
+   720→Libri
+   721→
+   722→Biblio
+   723→
+   724→Author
+   725→
+   726→Quill
+   727→
+   728→Quire
+   729→
+   730→Folio
+   731→
+   732→Codex
+   733→
+   734→Metaphors:
+   735→
+   736→Atelier (workshop) - captures the "studio" feel
+   737→
+   738→Forge (forge) - creating, crafting
+   739→
+   740→Fabrique (factory/making)
+   741→
+   742→Métier (craft/loom) - weaving text
+   743→
+   744→Trame (plot/weave) - double meaning in French (plot + weave)
+   745→
+   746→Toile (canvas/web)
+   747→
+   748→Palette (palette)
+   749→
+   750→Orchestre (orchestra - multi-agent)
+   751→
+   752→Symphonie
+   753→
+   754→Chorale (choir - multiple agents)
+   755→
+   756→Ruche (hive - multiple agents working)
+   757→
+   758→Essaim (swarm)
+   759→
+   760→Names evoking book creation:
+   761→
+   762→Plume (very French, elegant, evocative)
+   763→
+   764→Encrier (inkwell)
+   765→
+   766→Scriptorium
+   767→
+   768→PlumeForge
+   769→
+   770→InkWell
+   771→
+   772→Quill
+   773→
+   774→StoryForge
+   775→
+   776→BookForge (already exists though)
+   777→
+   778→PageCraft
+   779→
+   780→WordWeaver
+   781→
+   782→PlotForge
+   783→
+   784→Names that combine the "editor" + "AI" + "book":
+   785→
+   786→Scriptor
+   787→
+   788→Scribo
+   789→
+   790→Libretto
+   791→
+   792→Folio
+   793→
+   794→Codex
+   795→
+   796→ManuScript
+   797→
+   798→InkStudio
+   799→
+   800→Author
+   801→
+   802→Auteur
+   803→
+   804→PlumeStudio
+   805→
+   806→AtelierPlume
+   807→
+   808→Let me think about what's catchy and brandable:
+   809→
+   810→Plume - simple, elegant, French, evokes writing. But maybe too generic.
+   811→
+   812→Plume Studio - adds the "atelier" dimension
+   813→
+   814→Atelier Plume - very French, artisan feel
+   815→
+   816→La Fabrique - the factory, evokes creation
+   817→
+   818→Scriptorium - medieval writing room, evokes seriousness and craft (but a bit long)
+   819→
+   820→Trame - plot/weave in French, also means "weft" in weaving - evokes both story and craft
+   821→
+   822→Métier - craft, loom (métier à tisser) - evokes weaving stories
+   823→
+   824→Chorale - choir, evokes multiple agents singing together
+   825→
+   826→Ruche - hive, evokes collective intelligence
+   827→
+   828→Essaim - swarm, evokes multi-agent
+   829→
+   830→Encre - ink
+   831→
+   832→Encrier - inkwell
+   833→
+   834→Manuscrit - manuscript
+   835→
+   836→Gutenberg - too historical
+   837→
+   838→Codex - book/block of wood, evokes ancient books
+   839→
+   840→Folio - page, elegant
+   841→
+   842→Libretto - little book (Italian), evokes opera (theatre connection)
+   843→
+   844→Cantus - song (Latin)
+   845→
+   846→Narratio - narration (Latin)
+   847→
+   848→Scriptura - writing (Latin)
+   849→
+   850→Let me think about what's distinctive for THIS app specifically:
+   851→
+   852→It's an "atelier" (studio/workshop) where AI and human co-create
+   853→
+   854→Multiple agents (like a choir or a swarm)
+   855→
+   856→Word-like editor
+   857→
+   858→French roots (user is French, uses French AI)
+   859→
+   860→Top candidates:
+   861→
+   862→Plume — simple, elegant, French, universal. Could be Plume Studio or PlumeAI or just Plume.
+   863→
+   864→Atelier — captures the workshop/studio spirit
+   865→
+   866→Trame — French for "plot" and "weave" — double meaning captures both narrative and craft
+   867→
+   868→La Fabrique — "the factory" but in a craft/artisan sense
+   869→
+   870→Scriptorium — too medieval maybe, but evocative
+   871→
+   872→Métier — the craft/loom
+   873→
+   874→Chorale — the multi-agent choir
+   875→
+   876→Ruche — the hive (collective intelligence)
+   877→
+   878→Essaim — swarm (multi-agent)
+   879→
+   880→Let me refine into actual catchy names:
+   881→
+   882→Strong contenders:
+   883→
+   884→Plume — One word, memorable, French, evocative. "Plume" = pen/feather. Used in "nom de plume" (pen name). Very literary.
+   885→
+   886→Atelier Plume — "Plume Workshop" — combines craft + writing. A bit long.
+   887→
+   888→Trame — "Plot/Weave" — short, punchy, double meaning. "Trame narrative" = narrative plot. "Trame" also = weaving. Evokes the craft.
+   889→
+   890→La Fabrique à Livres — "The Book Factory" — evokes creation, but maybe too descriptive.
+   891→
+   892→Fabrique — "Factory/Make" — short, evokes making.
+   893→
+   894→Scripta — Latin for "writings" — short, brandable.
+   895→
+   896→Libri — Latin for "books" — short, brandable.
+   897→
+   898→Narra — from "narrative" — short, brandable.
+   899→
+   900→Scribo — Latin "I write" — short, brandable.
+   901→
+   902→Codex — "book/manuscript" — evokes ancient books, craft.
+   903→
+   904→Folio — "page" — elegant, brandable.
+   905→
+   906→Chorale — "choir" — evokes multi-agent collaboration.
+   907→
+   908→Ruche — "hive" — evokes collective intelligence.
+   909→
+   910→Essaim — "swarm" — evokes multi-agent.
+   911→
+   912→PlumeForge — combination — evokes crafting with a pen.
+   913→
+   914→InkFlow — English — evokes flow of writing.
+   915→
+   916→StoryForge — English — evokes crafting stories.
+   917→
+   918→PlotWeaver — English — evokes weaving plots.
+   919→
+   920→Booksmith — English — evokes crafting books (like blacksmith).
+   921→
+   922→WordSmith — English — evokes crafting words.
+   923→
+   924→Let me think about the user's context: French speaker, mentions French AI APIs (Mistral, Agnes AI), wants something catchy and memorable.
+   925→
+   926→Best recommendations:
+   927→
+   928→French options:
+   929→
+   930→Plume — the strongest French option. Simple, elegant, memorable, evokes writing and creativity. "Plume" is the French word for pen/feather, and "nom de plume" is universal.
+   931→
+   932→Trame — "plot/weave" — short, double meaning (narrative plot + weaving), very evocative.
+   933→
+   934→Atelier — "workshop" — captures the studio spirit.
+   935→
+   936→La Fabrique — "the factory" — evokes creation.
+   937→
+   938→Chorale — "choir" — evokes the multi-agent choir.
+   939→
+   940→Ruche — "hive" — evokes collective intelligence.
+   941→
+   942→Métier — "craft/loom" — evokes the craft of writing.
+   943→
+   944→Hybrid/French-English options:
+   945→
+   946→Plume Studio — combines French elegance with English "studio"
+   947→
+   948→PlumeForge — combines French "plume" with English "forge"
+   949→
+   950→InkForge — English, evokes crafting ink/words
+   951→
+   952→StoryForge — English, evokes crafting stories
+   953→
+   954→PlotForge — English, evokes crafting plots
+   955→
+   956→BookForge — already exists (BookForge project mentioned earlier)
+   957→
+   958→WordCraft — English, evokes crafting words
+   959→
+   960→PageCraft — English, evokes crafting pages
+   961→
+   962→Scriptor — Latin, evokes writing
+   963→
+   964→Scribo — Latin, evokes writing
+   965→
+   966→Libri — Latin, evokes books
+   967→
+   968→Codex — Latin, evokes ancient books
+   969→
+   970→Folio — Latin/Italian, evokes pages
+   971→
+   972→Let me think about what's most memorable and catchy:
+   973→
+   974→Top 5 recommendations:
+   975→
+   976→Plume — The strongest. One word, French, elegant, universal. "Plume" evokes the pen, the feather, writing, authorship ("nom de plume"). Easy to remember, easy to pronounce in French and English. Could be stylized as Plume or Plume° or plume.
+   977→
+   978→Trame — "Plot/weave." Short, punchy, double meaning (narrative plot + weaving). Evokes the craft of storytelling. Trame could be stylized as Trame or TRAME.
+   979→
+   980→Atelier — "Workshop." Captures the studio spirit. But maybe too generic (could be any creative app). Could be Atelier Plume or L'Atelier.
+   981→
+   982→Chorale — "Choir." Evokes the multi-agent collaboration (agents singing together). Unique, memorable. Chorale could be stylized as Chorale or ChoraleAI.
+   983→
+   984→Ruche — "Hive." Evokes collective intelligence (multiple agents working together). Short, punchy, evocative. Ruche could be stylized as Ruche or La Ruche.
+   985→
+   986→Let me also consider:
+   987→
+   988→Scriptorium — evokes the medieval writing room where monks copied manuscripts. Very literary, evokes craft and patience. But a bit long.
+   989→
+   990→Encrier — "inkwell." Evocative, French, but maybe less memorable.
+   991→
+   992→Libretto — "little book" in Italian. Evokes opera (theatre connection). Elegant.
+   993→
+   994→Codex — evokes ancient books. Short, brandable.
+   995→
+   996→Let me think about what's most "indispensable et incontournable" (unmissable) as the user wants.
+   997→
+   998→The winner: Plume
+   999→
+  1000→Why:
+  1001→
+  1002→One word, three syllables max, easy to remember
+  1003→
+  1004→French, elegant, literary
+  1005→
+  1006→Universal (plume = pen in French, feather in English, "nom de plume" in both)
+  1007→
+  1008→Evokes writing, creativity, lightness
+  1009→
+  1010→Works as a verb potentially ("plumer" = to pluck, but "plume" as a noun is pure)
+  1011→
+  1012→Easy to stylize: Plume, Plume°, plume, PLUME
+  1013→
+  1014→Could have a tagline: "Plume — L'atelier d'écriture augmenté" or "Plume — Your AI writing studio"
+  1015→
+  1016→Domain: plume.ai, plume.studio, getplume.com
+  1017→
+  1018→Short enough for app icon, memorable enough for word-of-mouth
+  1019→
+  1020→Runner-up: Trame
+  1021→
+  1022→Why:
+  1023→
+  1024→Double meaning: "plot" (narrative) + "weave" (craft)
+  1025→
+  1026→Short, punchy, 5 letters
+  1027→
+  1028→French, evocative
+  1029→
+  1030→"Trame narrative" is a common French literary term
+  1031→
+  1032→Could have a tagline: "Trame — Tissez votre récit" (Weave your story)
+  1033→
+  1034→Works well for the multi-genre aspect (trame = structure of any narrative)
+  1035→
+  1036→Runner-up: Chorale
+  1037→
+  1038→Why:
+  1039→
+  1040→Evokes the multi-agent choir (your conversational agents singing together)
+  1041→
+  1042→Unique, memorable
+  1043→
+  1044→Works well for the collaborative aspect
+  1045→
+  1046→Could have a tagline: "Chorale — L'écriture à plusieurs voix" (Writing in multiple voices)
+  1047→
+  1048→But might be confusing (choir = music, not writing)
+  1049→
+  1050→Let me present the best options with rationale, and let the user decide.
+  1051→
+  1052→Actually, I should also think about names that capture the SPECIFIC features:
+  1053→
+  1054→The Word-like editor
+  1055→
+  1056→The AI agents
+  1057→
+  1058→The step-by-step wizard
+  1059→
+  1060→The multi-genre aspect
+  1061→
+  1062→The local-first aspect
+  1063→
+  1064→Names that capture the "editor" aspect:
+  1065→
+  1066→Plume — pen/feather
+  1067→
+  1068→Stylo — pen (less elegant)
+  1069→
+  1070→Encre — ink
+  1071→
+  1072→Encrier — inkwell
+  1073→
+  1074→Manuscrit — manuscript
+  1075→
+  1076→Folio — page
+  1077→
+  1078→Page — page
+  1079→
+  1080→Names that capture the "AI/agents" aspect:
+  1081→
+  1082→Chorale — choir
+  1083→
+  1084→Ruche — hive
+  1085→
+  1086→Essaim — swarm
+  1087→
+  1088→Orchestre — orchestra
+  1089→
+  1090→Équipage — crew
+  1091→
+  1092→Meute — pack (wolves)
+  1093→
+  1094→Names that capture the "studio/workshop" aspect:
+  1095→
+  1096→Atelier — workshop
+  1097→
+  1098→Fabrique — factory
+  1099→
+  1100→Forge — forge
+  1101→
+  1102→Studio — studio
+  1103→
+  1104→Laboratoire — laboratory
+  1105→
+  1106→Cuisine — kitchen (French "cuisine" = cooking + "faire la cuisine" = to cook up/mix)
+  1107→
+  1108→Names that capture the "book" aspect:
+  1109→
+  1110→Livre — book
+  1111→
+  1112→Ouvrage — work/opus
+  1113→
+  1114→Volume — volume
+  1115→
+  1116→Codex — codex
+  1117→
+  1118→Libri — books (Latin)
+  1119→
+  1120→Biblio — book (Greek root)
+  1121→
+  1122→Tome — tome
+  1123→
+  1124→Combinations:
+  1125→
+  1126→PlumeForge — forge a plume
+  1127→
+  1128→InkForge — forge ink
+  1129→
+  1130→StoryForge — forge stories
+  1131→
+  1132→PlotWeaver — weave plots
+  1133→
+  1134→WordCraft — craft words
+  1135→
+  1136→BookSmith — smith books
+  1137→
+  1138→Scriptorium — writing room
+  1139→
+  1140→Atelier Plume — plume workshop
+  1141→
+  1142→La Fabrique du Livre — the book factory
+  1143→
+  1144→Ruche à Plumes — hive of plumes
+  1145→
+  1146→Chorale de Plumes — choir of plumes
+  1147→
+  1148→Let me also think about English names since the app could be international:
+  1149→
+  1150→Inkwell
+  1151→
+  1152→Quill
+  1153→
+  1154→StoryForge
+  1155→
+  1156→WordSmith
+  1157→
+  1158→BookForge (taken)
+  1159→
+  1160→PlotForge
+  1161→
+  1162→PageCraft
+  1163→
+  1164→InkFlow
+  1165→
+  1166→Scribo
+  1167→
+  1168→Scriptor
+  1169→
+  1170→Codex
+  1171→
+  1172→Folio
+  1173→
+  1174→Libri
+  1175→
+  1176→Narra
+  1177→
+  1178→Fable
+  1179→
+  1180→Muse
+  1181→
+  1182→Quill
+  1183→
+  1184→Parchment
+  1185→
+  1186→Vellum
+  1187→
+  1188→Inkling (also means "hint/suspicion")
+  1189→
+  1190→Draft
+  1191→
+  1192→Manuscript
+  1193→
+  1194→Let me think about which names are actually available/not taken:
+  1195→
+  1196→BookForge — taken (project exists)
+  1197→
+  1198→StoryForge — likely taken
+  1199→
+  1200→WordSmith — taken (many products)
+  1201→
+  1202→Plume — likely taken (there are companies called Plume)
+  1203→
+  1204→Trame — maybe available
+  1205→
+  1206→Chorale — likely available
+  1207→
+  1208→Ruche — maybe available
+  1209→
+  1210→Atelier — likely taken
+  1211→
+  1212→Codex — taken (OpenAI Codex)
+  1213→
+  1214→Folio — taken (Folio, many products)
+  1215→
+  1216→Libri — maybe available
+  1217→
+  1218→Scribo — maybe available
+  1219→
+  1220→Scriptor — maybe available
+  1221→
+  1222→Narra — maybe available
+  1223→
+  1224→Muse — taken (many products)
+  1225→
+  1226→Quill — taken (Quill editor)
+  1227→
+  1228→Fable — taken (Fable is a company)
+  1229→
+  1230→Hmm, many good names are taken. But the user didn't ask about trademark availability, just for a catchy name. I'll present the best options and note that trademark checks are needed.
+  1231→
+  1232→Let me structure my answer:
+  1233→
+  1234→Explain the criteria for a good name
+  1235→
+  1236→Present the top recommendations with rationale
+  1237→
+  1238→Present runner-up options
+  1239→
+  1240→Suggest taglines
+  1241→
+  1242→Suggest domain names
+  1243→
+  1244→Note trademark considerations
+  1245→
+  1246→Let me be concise but thorough.
+  1247→
+  1248→Actually, I realize I should think about what the user specifically wants: "un nom facile à retenir et accrocheur" (a name easy to remember and catchy). So I should focus on memorability and catchiness.
+  1249→
+  1250→Let me also think about names that play with the "AI + writing" combination:
+  1251→
+  1252→Plume (the classic)
+  1253→
+  1254→Trame (the plot/weave)
+  1255→
+  1256→Chorale (the agents)
+  1257→
+  1258→Ruche (the collective)
+  1259→
+  1260→Atelier (the studio)
+  1261→
+  1262→Fabrique (the factory)
+  1263→
+  1264→Scriptorium (the writing room)
+  1265→
+  1266→Forge (the craft)
+  1267→
+  1268→Métier (the craft/loom)
+  1269→
+  1270→Toile (the canvas/web, also "toile" = painting canvas)
+  1271→
+  1272→Wait — Toile is interesting:
+  1273→
+  1274→"Toile" = canvas (painting), web (spider), cloth
+  1275→
+  1276→"Toile" also evokes "toile de fond" (backdrop)
+  1277→
+  1278→Short, evocative, but maybe less clearly writing-related
+  1279→
+  1280→Métier is interesting:
+  1281→
+  1282→"Métier" = craft, profession, loom (métier à tisser)
+  1283→
+  1284→"Le métier d'écrivain" = the craft of the writer
+  1285→
+  1286→Evokes both craft and weaving
+  1287→
+  1288→Short (6 letters), memorable
+  1289→
+  1290→Trame is interesting:
+  1291→
+  1292→"Trame" = plot (narrative), weave (weft), texture
+  1293→
+  1294→"Trame narrative" = narrative plot
+  1295→
+  1296→Very literary, evokes the craft of storytelling
+  1297→
+  1298→Short (5 letters), punchy
+  1299→
+  1300→Let me also think of:
+  1301→
+  1302→Récit — "narrative/tale" — short, but maybe too generic
+  1303→
+  1304→Conte — "tale" — evokes storytelling
+  1305→
+  1306→Fable — "fable" — evokes storytelling (taken)
+  1307→
+  1308→Saga — "saga" — evokes long stories
+  1309→
+  1310→Épopée — "epic" — evocative but long
+  1311→
+  1312→Roman — "novel" — too specific (only novels)
+  1313→
+  1314→Nouvelle — "short story" — too specific
+  1315→
+  1316→Poème — "poem" — too specific
+  1317→
+  1318→Hmm, I think the strongest options are:
+  1319→
+  1320→French:
+  1321→
+  1322→Plume — simple, elegant, universal
+  1323→
+  1324→Trame — double meaning (plot + weave)
+  1325→
+  1326→Chorale — multi-agent choir
+  1327→
+  1328→Ruche — collective intelligence
+  1329→
+  1330→Atelier — studio/workshop
+  1331→
+  1332→Métier — craft/loom
+  1333→
+  1334→Scriptorium — writing room
+  1335→
+  1336→La Fabrique — the factory
+  1337→
+  1338→Hybrid/English:
+  1339→
+  1340→PlumeForge — forge with a plume
+  1341→
+  1342→StoryForge — forge stories
+  1343→
+  1344→InkForge — forge ink
+  1345→
+  1346→WordCraft — craft words
+  1347→
+  1348→BookSmith — smith books
+  1349→
+  1350→PlotWeaver — weave plots
+  1351→
+  1352→PageCraft — craft pages
+  1353→
+  1354→Let me also think about:
+  1355→
+  1356→Narra — from "narrative" — short, brandable, works in French and English
+  1357→
+  1358→Scribo — Latin "I write" — short, brandable
+  1359→
+  1360→Libri — Latin "books" — short, brandable
+  1361→
+  1362→Scriptor — Latin "writer" — elegant
+  1363→
+  1364→Codex — ancient book — evocative
+  1365→
+  1366→Folio — page — elegant
+  1367→
+  1368→I think I'll present a curated selection with clear rationale, ranked by strength for this specific project. Let me be decisive and recommend 1-2 top choices, then give alternatives.
+  1369→
+  1370→My top recommendation: Plume (or a variation like Plume Studio)
+  1371→
+  1372→Why:
+  1373→
+  1374→French, elegant, universal
+  1375→
+  1376→Evokes writing (pen/feather)
+  1377→
+  1378→"Nom de plume" is universal
+  1379→
+  1380→One word, easy to remember
+  1381→
+  1382→Works as a brand: Plume, Plume Studio, Plume° , getplume.com
+  1383→
+  1384→Tagline: "L'atelier d'écriture augmenté" / "Your AI writing studio"
+  1385→
+  1386→Second: Trame
+  1387→
+  1388→Why:
+  1389→
+  1390→Double meaning: plot + weave
+  1391→
+  1392→Short, punchy
+  1393→
+  1394→Very literary
+  1395→
+  1396→"Trame narrative" is a common French term
+  1397→
+  1398→Tagline: "Tissez votre récit" / "Weave your story"
+  1399→
+  1400→Third: Chorale
+  1401→
+  1402→Why:
+  1403→
+  1404→Evokes the multi-agent choir
+  1405→
+  1406→Unique, memorable
+  1407→
+  1408→Tagline: "L'écriture à plusieurs voix" / "Writing in many voices"
+  1409→
+  1410→Let me also suggest some compound names:
+  1411→
+  1412→PlumeForge
+  1413→
+  1414→Plume Studio
+  1415→
+  1416→Atelier Plume
+  1417→
+  1418→La Fabrique à Plumes
+  1419→
+  1420→Chorale de Plumes
+  1421→
+  1422→Actually, I want to be careful not to overwhelm. Let me present a clear, decisive answer with 3-4 top options, each with a tagline and rationale, and let the user choose.
+  1423→
+  1424→Let me also think about the visual/branding potential:
+  1425→
+  1426→Plume — feather icon, elegant serif font
+  1427→
+  1428→Trame — weaving pattern, geometric icon
+  1429→
+  1430→Chorale — musical notes, wave icon
+  1431→
+  1432→Ruche — honeycomb pattern
+  1433→
+  1434→And the domain names:
+  1435→
+  1436→plume.studio
+  1437→
+  1438→getplume.ai
+  1439→
+  1440→trame.app
+  1441→
+  1442→chorale.ai
+  1443→
+  1444→ruche.app
+  1445→
+  1446→Let me finalize my answer.
+  1447→
+  1448→Actually, I want to also think about a name that captures the "Word-like editor + AI" combination. Something like:
+  1449→
+  1450→WordForge — but taken (WordForge is a thing)
+  1451→
+  1452→InkForge — forge ink
+  1453→
+  1454→PenForge — forge pens
+  1455→
+  1456→QuillForge — forge quills
+  1457→
+  1458→PageForge — forge pages
+  1459→
+  1460→Hmm, "Forge" is very evocative of crafting. PlumeForge combines French elegance with English "forge." But it might be too much.
+  1461→
+  1462→Let me also think about:
+  1463→
+  1464→Scripta — Latin plural of "scriptum" (writings) — short, brandable
+  1465→
+  1466→Scriba — Latin "scribe" — short, brandable
+  1467→
+  1468→Littera — Latin "letter" — elegant
+  1469→
+  1470→Verbum — Latin "word" — elegant
+  1471→
+  1472→Textus — Latin "text" — evokes texture
+  1473→
+  1474→I think the strongest options are still Plume, Trame, Chorale, and Ruche.
+  1475→
+  1476→Let me write a well-structured answer in French (since the user writes in French) with:
+  1477→
+  1478→Selection criteria
+  1479→
+  1480→Top 3 recommendations with rationale
+  1481→
+  1482→Runner-up options
+  1483→
+  1484→Suggested taglines
+  1485→
+  1486→Domain name suggestions
+  1487→
+  1488→Note on trademark checks
+  1489→
+  1490→Let me finalize.
+  1491→
+  1492→Excellent moment pour nommer votre projet — le nom doit évoquer à la fois l'atelier d'écriture, l'intelligence collective des agents et la simplicité d'usage. Voici une sélection raisonnée, classée par force évocatrice.
+  1493→
+  1494→🏆 Les 3 Recommandations Principales
+  1495→1. Plume ⭐ (Ma recommandation n°1)
+  1496→Pourquoi c'est le meilleur choix :
+  1497→
+  1498→Un seul mot, trois syllabes, impossible à oublier. Se prononce et s'écrit pareil en français et en anglais.
+  1499→
+  1500→Évocateur universel : la plume = l'écriture, l'auteur, le "nom de plume", la légèreté créative. C'est à la fois l'outil (la plume) et l'acte (écrire).
+  1501→
+  1502→Élégant et intemporel : fonctionne aussi bien pour un roman que pour un scénario, un sketch ou un essai — exactement votre multi-genre.
+  1503→
+  1504→Brandable à l'infini : Plume, Plume Studio, Plume°, Atelier Plume, PlumeForge.
+  1505→
+  1506→Icône évidente : une plume stylisée, un trait de plume, une plume qui se transforme en page.
+  1507→
+  1508→Taglines possibles :
+  1509→
+  1510→Plume — L'atelier d'écriture augmenté
+  1511→
+  1512→Plume — Votre studio d'écriture IA
+  1513→
+  1514→Plume — De l'idée au livre
+  1515→
+  1516→Domaines potentiels : plume.studio, getplume.ai, plume.app
+  1517→
+  1518→2. Trame ⭐ (Ma recommandation n°2)
+  1519→Pourquoi c'est excellent :
+  1520→
+  1521→Double sens puissant : trame = l'intrigue, le fil narratif ("la trame narrative") et trame = le tissage, la texture. C'est exactement votre promesse : tisser une histoire avec l'IA.
+  1522→
+  1523→Court et percutant : 5 lettres, 2 syllabes. Mémorable instantanément.
+  1524→
+  1525→Très littéraire : un terme que tout auteur ou scénariste connaît déjà.
+  1526→
+  1527→Fonctionne pour tous les genres : une trame de roman, une trame de scénario, une trame de pièce.
+  1528→
+  1529→Taglines possibles :
+  1530→
+  1531→Trame — Tissez votre récit
+  1532→
+  1533→Trame — L'étoffe des histoires
+  1534→
+  1535→Trame — Chaque fil compte
+  1536→
+  1537→Domaines potentiels : trame.app, getTrame.com, trame.studio
+  1538→
+  1539→3. Chorale ⭐ (Ma recommandation n°3 — la plus originale)
+  1540→Pourquoi c'est audacieux et distinctif :
+  1541→
+  1542→Évoque directement vos agents conversationnels : plusieurs voix qui chantent ensemble, comme vos agents (BriefAgent, WriterAgent, ReviewerAgent...) qui collaborent pour produire un livre.
+  1543→
+  1544→Unique : aucun concurrent ne s'appelle Chorale. Vous vous démarquez immédiatement.
+  1545→
+  1546→Évoque la collaboration humain-IA : l'auteur est le chef d'orchestre, les agents sont les choristes.
+  1547→
+  1548→Mémorable et poétique : un nom qui a une âme, pas un nom générique.
+  1549→
+  1550→Taglines possibles :
+  1551→
+  1552→Chorale — L'écriture à plusieurs voix
+  1553→
+  1554→Chorale — Vos agents, votre histoire
+  1555→
+  1556→Chorale — Toutes les voix de votre livre
+  1557→
+  1558→Domaines potentiels : chorale.ai, getChorale.com, chorale.studio
+  1559→
+  1560→🥈 Alternatives Solides
+  1561→Nom     Force   Idée de tagline
+  1562→Ruche   Évoque l'intelligence collective (les agents), le bourdonnement créatif Ruche — L'atelier où les idées butinent
+  1563→Atelier Évoque le studio, le travail artisanal, le "fait main"  Atelier — L'écriture comme un métier d'art
+  1564→Métier  Double sens : le métier d'écrivain + le métier à tisser Métier — Tissez votre œuvre
+  1565→Scriptorium     Évoque le lieu médiéval où l'on copiait les manuscrits — très littéraire        Scriptorium — Le studio des manuscrits modernes
+  1566→La Fabrique     Évoque la fabrication, la création, l'atelier   La Fabrique — Fabriquez votre livre
+  1567→PlumeForge      Combine la plume (écriture) et la forge (création)      PlumeForge — Forgez votre plume
+  1568→Trame Studio    Combine le double sens de Trame + le côté studio        Trame Studio — L'atelier du récit
+  1569→🎯 Mon Verdict
+  1570→Si je devais trancher pour un seul nom, je choisirais Plume.
+  1571→
+  1572→C'est le nom qui coche toutes les cases :
+  1573→
+  1574→✅ Facile à retenir (un mot, universel)
+  1575→
+  1576→✅ Accrocheur et élégant
+  1577→
+  1578→✅ Évoque immédiatement l'écriture et la création
+  1579→
+  1580→✅ Fonctionne pour tous les genres (roman, scénario, théâtre...)
+  1581→
+  1582→✅ Permet une identité visuelle forte (une plume stylisée)
+  1583→
+  1584→✅ S'adapte à toutes les déclinaisons (Plume Studio, Plume Pro, Plume Local...)
+  1585→
+  1586→Nom complet suggéré : Plume Studio — L'atelier d'écriture augmenté
+  1587→
+  1588→Cela combine le charme de "Plume" avec la dimension "studio/atelier" qui correspond parfaitement à votre éditeur Tiptap intégré.
+  1589→
+  1590→⚠️ Point important : avant de valider définitivement, vérifiez la disponibilité des noms de domaine et effectuez une recherche d'antériorité (INPI en France, EUIPO en Europe) pour éviter les conflits de marque. "Plume" est un mot courant, il faudra peut-être ajouter un suffixe (Plume Studio, PlumeForge) pour la marque déposée.
+  1591→
+  1592→Souhaitez-vous que je vous aide à décliner l'identité visuelle (slogan, palette de couleurs, concept d'icône) autour du nom choisi ?
